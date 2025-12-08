@@ -1,10 +1,9 @@
 package tn.esprit.studentmanagement.controllers;
 
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.studentmanagement.entities.Department;
-import tn.esprit.studentmanagement.entities.Enrollment;
-import tn.esprit.studentmanagement.services.DepartmentService;
 import tn.esprit.studentmanagement.services.IDepartmentService;
 
 import java.util.List;
@@ -17,7 +16,15 @@ public class DepartmentController {
     private IDepartmentService departmentService;
 
     @GetMapping("/getAllDepartment")
-    public List<Department> getAllDepartment() { return departmentService.getAllDepartments(); }
+    public ResponseEntity<?> getAllDepartment() {
+        try {
+            List<Department> departments = departmentService.getAllDepartments();
+            return ResponseEntity.ok(departments);
+        } catch (Exception e) {
+            e.printStackTrace(); // This will appear in logs
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
+    }
 
     @GetMapping("/getDepartment/{id}")
     public Department getDepartment(@PathVariable Long id) { return departmentService.getDepartmentById(id); }
