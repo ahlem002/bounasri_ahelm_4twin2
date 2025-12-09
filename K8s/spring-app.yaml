@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
-  metadata:
-name: spring-app
-namespace: devops
+metadata:
+  name: spring-app
+  namespace: devops
 spec:
   replicas: 1
   selector:
@@ -10,8 +10,8 @@ spec:
       app: spring-app
   template:
     metadata:
-    labels:
-      app: spring-app
+      labels:
+        app: spring-app
     spec:
       containers:
         - name: spring-app
@@ -22,9 +22,9 @@ spec:
 ---
 apiVersion: v1
 kind: Service
-  meta
-name: spring-service
-namespace: devops
+metadata:
+  name: spring-service
+  namespace: devops
 spec:
   type: NodePort
   ports:
