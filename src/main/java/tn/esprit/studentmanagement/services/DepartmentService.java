@@ -1,6 +1,7 @@
 package tn.esprit.studentmanagement.services;
 
 
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.esprit.studentmanagement.entities.Department;
 import tn.esprit.studentmanagement.repositories.DepartmentRepository;
@@ -8,10 +9,10 @@ import tn.esprit.studentmanagement.repositories.DepartmentRepository;
 import java.util.List;
 
 @Service
-
+@AllArgsConstructor
 public class DepartmentService implements IDepartmentService {
 
-    DepartmentRepository departmentRepository;
+    private final DepartmentRepository departmentRepository;
 
     @Override
     public List<Department> getAllDepartments() {
