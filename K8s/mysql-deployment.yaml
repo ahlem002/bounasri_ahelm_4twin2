@@ -1,6 +1,7 @@
+
 apiVersion: v1
 kind: PersistentVolumeClaim
- meta
+  metadata:
 name: mysql-pvc
 namespace: devops
 spec:
@@ -12,7 +13,7 @@ spec:
 ---
 apiVersion: apps/v1
 kind: Deployment
-  meta
+  metadata:
 name: mysql
 namespace: devops
 spec:
