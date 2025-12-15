@@ -1,5 +1,4 @@
-
-# 1. PersistentVolume
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -10,9 +9,8 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/tmp/mysql-data"
+    path: "/data/mysql"
 ---
-# 2. PersistentVolumeClaim
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -24,7 +22,6 @@ spec:
     requests:
       storage: 1Gi
 ---
-# 3. Deployment MySQL
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -57,7 +54,6 @@ spec:
           persistentVolumeClaim:
             claimName: mysql-pvc
 ---
-# 4. Service MySQL
 apiVersion: v1
 kind: Service
 metadata:

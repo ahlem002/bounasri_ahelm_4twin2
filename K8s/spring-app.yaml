@@ -1,7 +1,5 @@
-# Créer le fichier spring-deployment-fixed.yaml
-cat > spring-deployment-fixed.yaml << 'EOF'
 ---
-# 1. ConfigMap
+# ConfigMap
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -11,25 +9,27 @@ data:
   SPRING_DATASOURCE_URL: jdbc:mysql://mysql-service:3306/studentdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
   SPRING_JPA_SHOW_SQL: "true"
   SPRING_JPA_HIBERNATE_DDL_AUTO: update
+  SPRING_JPA_HIBERNATE_NAMING_PHYSICAL_STRATEGY: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  SPRING_JPA_HIBERNATE_NAMING_IMPLICIT_STRATEGY: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
   SPRING_SQL_INIT_MODE: always
   SERVER_PORT: "8089"
   SERVER_SERVLET_CONTEXT_PATH: /student
 ---
-# 2. Secret
+# Secret
 apiVersion: v1
 kind: Secret
 metadata:
   name: spring-secret
 type: Opaque
 data:
-  SPRING_DATASOURCE_USERNAME: cm9vdA==  # "root" encodé en base64
-  SPRING_DATASOURCE_PASSWORD: cm9vdA==  # "root" encodé en base64
+  SPRING_DATASOURCE_USERNAME: cm9vdA==  # root
+  SPRING_DATASOURCE_PASSWORD: cm9vdA==  # root
 ---
-# 3. Deployment Spring Boot - AVEC imagePullPolicy: Never
+# Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: student-app
+  name: student-app  # Changé de spring-app à student-app
 spec:
   replicas: 2
   selector:
@@ -42,8 +42,8 @@ spec:
     spec:
       containers:
         - name: student-app
-          image: ahlembounasri/student-management:1.0
-          imagePullPolicy: Never  # IMPORTANT: utilise l'image locale
+          image: ahlembounasri/student-management:latest  # Placeholder remplacé par pipeline
+          imagePullPolicy: Always
           ports:
             - containerPort: 8089
           envFrom:
@@ -58,8 +58,20 @@ spec:
             limits:
               memory: "1Gi"
               cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /student/actuator/health
+              port: 8089
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /student/actuator/health
+              port: 8089
+            initialDelaySeconds: 30
+            periodSeconds: 5
 ---
-# 4. Service NodePort
+# Service
 apiVersion: v1
 kind: Service
 metadata:
