@@ -70,4 +70,3 @@ spec:
       targetPort: 8089
       nodePort: 30080
   type: NodePort
-  EOF
