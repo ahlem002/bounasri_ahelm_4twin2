@@ -1,5 +1,4 @@
-cat > mysql-deployment.yaml << 'EOF'
----
+
 # 1. PersistentVolume
 apiVersion: v1
 kind: PersistentVolume

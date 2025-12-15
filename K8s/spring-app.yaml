@@ -1,5 +1,4 @@
-cat > spring-deployment.yaml << 'EOF'
----
+
 # 1. ConfigMap
 apiVersion: v1
 kind: ConfigMap
@@ -41,7 +40,7 @@ spec:
     spec:
       containers:
         - name: student-app
-          image: votre-nom-dutilisateur/student-management:latest  # À CHANGER
+          image: ahlembounasri/student-management:1.0  # CORRIGÉ
           ports:
             - containerPort: 8089
           envFrom:
