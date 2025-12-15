@@ -1,4 +1,6 @@
-
+# Créer le fichier spring-deployment-fixed.yaml
+cat > spring-deployment-fixed.yaml << 'EOF'
+---
 # 1. ConfigMap
 apiVersion: v1
 kind: ConfigMap
@@ -23,7 +25,7 @@ data:
   SPRING_DATASOURCE_USERNAME: cm9vdA==  # "root" encodé en base64
   SPRING_DATASOURCE_PASSWORD: cm9vdA==  # "root" encodé en base64
 ---
-# 3. Deployment Spring Boot
+# 3. Deployment Spring Boot - AVEC imagePullPolicy: Never
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -40,7 +42,8 @@ spec:
     spec:
       containers:
         - name: student-app
-          image: ahlembounasri/student-management:1.0  # CORRIGÉ
+          image: ahlembounasri/student-management:1.0
+          imagePullPolicy: Never  # IMPORTANT: utilise l'image locale
           ports:
             - containerPort: 8089
           envFrom:
