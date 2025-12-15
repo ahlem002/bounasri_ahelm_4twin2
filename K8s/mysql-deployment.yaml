@@ -1,8 +1,23 @@
+cat > mysql-deployment.yaml << 'EOF'
+---
+# 1. PersistentVolume
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/tmp/mysql-data"
+---
+# 2. PersistentVolumeClaim
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mysql-pvc
-  namespace: devops
 spec:
   accessModes:
     - ReadWriteOnce
@@ -10,11 +25,11 @@ spec:
     requests:
       storage: 1Gi
 ---
+# 3. Deployment MySQL
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
-  namespace: devops
 spec:
   replicas: 1
   selector:
@@ -30,28 +45,29 @@ spec:
           image: mysql:8.0
           env:
             - name: MYSQL_ROOT_PASSWORD
-              value: "root"
+              value: root
             - name: MYSQL_DATABASE
-              value: "studentdb"
+              value: studentdb
           ports:
             - containerPort: 3306
           volumeMounts:
-            - name: mysql-storage
-              mountPath: /var/lib/mysql
+            - mountPath: /var/lib/mysql
+              name: mysql-storage
       volumes:
         - name: mysql-storage
           persistentVolumeClaim:
             claimName: mysql-pvc
 ---
+# 4. Service MySQL
 apiVersion: v1
 kind: Service
 metadata:
   name: mysql-service
-  namespace: devops
 spec:
+  selector:
+    app: mysql
   ports:
     - port: 3306
       targetPort: 3306
-  selector:
-    app: mysql
   type: ClusterIP
+  EOF
