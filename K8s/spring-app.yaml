@@ -1,94 +1,101 @@
 ---
-# Deployment avec env: explicite
+# ConfigMap for non-sensitive configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spring-config
+  namespace: devops
+data:
+  SPRING_DATASOURCE_URL: "jdbc:mysql://mysql-service:3306/studentdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+  SPRING_JPA_SHOW_SQL: "true"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  SERVER_PORT: "8089"
+  SERVER_SERVLET_CONTEXT_PATH: "/student"
+
+---
+# Secret for sensitive data (base64 encoded)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+  namespace: devops
+type: Opaque
+data:
+  username: cm9vdA==  # root in base64
+  password: cm9vdA==  # root in base64
+
+---
+# Spring Boot Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: student-app
+  name: spring-app
+  namespace: devops
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: student-app
+      app: spring-app
   template:
     metadata:
       labels:
-        app: student-app
+        app: spring-app
     spec:
       containers:
-        - name: student-app
-          image: "ahlembounasri/student-management:latest"
-          imagePullPolicy: Always
+        - name: spring-app
+          image: student-management:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 8089
           env:
-            - name: SPRING_APPLICATION_NAME
-              value: "student-management"
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:mysql://mysql-service:3306/studentdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+              valueFrom:
+                configMapKeyRef:
+                  name: spring-config
+                  key: SPRING_DATASOURCE_URL
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: spring-secret
-                  key: SPRING_DATASOURCE_USERNAME
+                  name: mysql-secret
+                  key: username
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: spring-secret
-                  key: SPRING_DATASOURCE_PASSWORD
+                  name: mysql-secret
+                  key: password
             - name: SPRING_JPA_SHOW_SQL
-              value: "true"
+              valueFrom:
+                configMapKeyRef:
+                  name: spring-config
+                  key: SPRING_JPA_SHOW_SQL
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO
-              value: "update"
-            - name: SPRING_JPA_HIBERNATE_NAMING_PHYSICAL_STRATEGY
-              value: "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl"
-            - name: SPRING_JPA_HIBERNATE_NAMING_IMPLICIT_STRATEGY
-              value: "org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl"
-            - name: SPRING_SQL_INIT_MODE
-              value: "always"
+              valueFrom:
+                configMapKeyRef:
+                  name: spring-config
+                  key: SPRING_JPA_HIBERNATE_DDL_AUTO
             - name: SERVER_PORT
-              value: "8089"
+              valueFrom:
+                configMapKeyRef:
+                  name: spring-config
+                  key: SERVER_PORT
             - name: SERVER_SERVLET_CONTEXT_PATH
-              value: "/student"
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "1Gi"
-              cpu: "500m"
-          livenessProbe:
-            httpGet:
-              path: "/student/actuator/health"
-              port: 8089
-            initialDelaySeconds: 60
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: "/student/actuator/health"
-              port: 8089
-            initialDelaySeconds: 30
-            periodSeconds: 5
+              valueFrom:
+                configMapKeyRef:
+                  name: spring-config
+                  key: SERVER_SERVLET_CONTEXT_PATH
+
 ---
-# Service
+# Spring Boot Service (NodePort)
 apiVersion: v1
 kind: Service
 metadata:
-  name: student-service
+  name: spring-service
+  namespace: devops
 spec:
+  type: NodePort
   selector:
-    app: student-app
+    app: spring-app
   ports:
     - port: 8089
       targetPort: 8089
       nodePort: 30080
-  type: NodePort
----
-# Secret (séparé)
-apiVersion: v1
-kind: Secret
-metadata:
-  name: spring-secret
-type: Opaque
-stringData:
-  SPRING_DATASOURCE_USERNAME: "root"
-  SPRING_DATASOURCE_PASSWORD: "root"
